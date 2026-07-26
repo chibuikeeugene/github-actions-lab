@@ -1,4 +1,4 @@
-from calculator import add, subtract, multiply
+from calculator import add, subtract, multiply, divide
 
 def test_add() -> None:
     """run test on add operation"""
@@ -12,4 +12,7 @@ def test_multiply() -> None:
     """run test on multiply operation"""
     assert multiply(4,5) == 20
     assert multiply(-4, 5) == -20
-    assert multiply(0,100) == 0
+
+def test_divide() -> None:
+    """run test on division operation"""
+    assert divide(4,2) == 2

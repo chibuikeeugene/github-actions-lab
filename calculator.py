@@ -10,3 +10,7 @@ def subtract(num1:float, num2:float) -> float:
 def multiply(num1:float, num2:float) -> float:
     """multiply two numbers"""
     return num1 * num2
+
+def divide(num1:float, num2:float) -> float:
+    """divide two numbers"""
+    return num1 / num2
