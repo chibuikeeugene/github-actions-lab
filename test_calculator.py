@@ -15,4 +15,4 @@ def test_multiply() -> None:
 
 def test_divide() -> None:
     """run test on division operation"""
-    assert divide(4,2) == 3
+    assert divide(4,2) == 2
