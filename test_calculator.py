@@ -1,5 +1,4 @@
-import random
-from calculator import add, subtract, multiply, divide
+from calculator import add, divide, multiply, subtract
 
 def test_add() -> None:
     """run test on add operation"""
