@@ -13,7 +13,21 @@ permissions:
     contents: read
 
 jobs:
+    quality:
+        # ruff lint and format checks
+        name: code quality check
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+
+        steps:
+            - name: run quality check
+              run: |
+                python -m ruff check .
+                python -m ruff format --check .
+
+
     test:
+        # pytest tests
         name: run python tests
         runs-on: ubuntu-latest
         timeout-minutes: 5

@@ -1,3 +1,4 @@
+import random
 from calculator import add, subtract, multiply, divide
 
 def test_add() -> None:
