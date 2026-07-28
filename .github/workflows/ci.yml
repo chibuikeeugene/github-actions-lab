@@ -104,7 +104,7 @@ jobs:
               run: |
                 python -m pytest \
                     --cov=calculator \
-                    --cov-report=test-missing \
+                    --cov-report=term-missing \
                     --cov-report=html 
 
             - name: Upload html report
