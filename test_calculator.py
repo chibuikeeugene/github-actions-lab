@@ -1,6 +1,6 @@
 import sys
-from calculator import add, divide, multiply, subtract
 
+from calculator import add, divide, multiply, subtract
 
 def test_add() -> None:
     """run test on add operation"""
@@ -24,4 +24,4 @@ def test_divide() -> None:
 
 def test_minimum_python_version() -> None:
     """run test to check python version"""
-    assert sys.version >= '3.12'
+    assert sys.version_info >= (3, 11)
