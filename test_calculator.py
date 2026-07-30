@@ -2,6 +2,7 @@ import sys
 
 from calculator import add, divide, multiply, subtract
 
+
 def test_add() -> None:
     """run test on add operation"""
     assert add(2, 3) == 5
@@ -21,6 +22,7 @@ def test_multiply() -> None:
 def test_divide() -> None:
     """run test on division operation"""
     assert divide(4, 2) == 2
+
 
 def test_minimum_python_version() -> None:
     """run test to check python version"""
