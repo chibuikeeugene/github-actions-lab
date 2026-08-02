@@ -28,11 +28,12 @@ jobs:
               with: 
                 python-version: "3.13"
                 cache: pip
+                cache-dependency-path: requirements-dev.txt
             
             - name: install dependencies
               run: |
                     python -m pip install --upgrade pip
-                    python -m pip install -r requirements.txt
+                    python -m pip install -r requirements-dev.txt
 
             - name: run linting check
               run:
@@ -67,11 +68,12 @@ jobs:
               with:
                 python-version: ${{matrix.python-version}}
                 cache: pip
+                cache-dependency-path: requirements-dev.txt
 
             - name: install dependencies
               run: |
                     python -m pip install --upgrade pip
-                    python -m pip install -r requirements.txt
+                    python -m pip install -r requirements-dev.txt
 
             - name: run test
               run:
@@ -94,6 +96,7 @@ jobs:
               with:
                 python-version: "3.13"
                 cache: pip
+                cache-dependency-path: requirements-dev.txt
             
             - name: install dependencies
               run: |
