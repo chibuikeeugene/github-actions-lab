@@ -1,0 +1,160 @@
+name: Docker delivery
+
+on: 
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+env:
+    REGISTRY: ghcr.io
+    IMAGE_NAME: ${{github.repository}}
+
+jobs:
+    build-test:
+        # build and test the container
+        name: build and test the container
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        steps:
+        - name: check out repository
+          uses: actions/checkout@v7
+        
+        - name: build the container image
+          run: docker build -t calculator-api:test .
+        
+        - name: start the container
+          run: |
+            docker run -d \
+            --name calculator-api \
+            -p 8000:8000 \
+            calculator-api:test
+
+        - name: wait for the container
+          run: |
+            python - <<'PY'
+            import time
+            import subprocess
+            from pathlib import Path
+            from urllib.error import URLError
+            from urllib.request import urlopen
+
+
+            url = "http://127.0.0.1:8000/health"
+
+            for attempt in range(1, 16):
+                try:
+                    with urlopen(url=url, timeout=10) as response:
+                        result = response.read()
+                        Path("health-response.json").write_bytes(result)
+                        print("Container is ready")
+                        break
+                except (URLError, TimeoutError, OSError) as error:
+                    print(f"Waiting for container: attempt{attempt}/15")
+                    print(f"Reason: {error}")
+                    time.sleep(2)
+
+            else:
+                print("Container did not become ready")
+                subprocess.run(
+                    ["docker", "logs", "calculator-api"], check=False
+                )
+                raise SystemExit(1)
+            PY
+        - name: test the health endpoint
+          run: |
+            python - <<'PY'
+            import json
+            with open("health-response.json", encoding="utf-8") as file:
+                response = json.load(file)
+
+            print(response)
+            assert response.get("status") == "ok", response
+            'PY'
+
+        - name: test the calculator endpoint
+          run: |
+            python - << 'PY'
+            # Testing the calculator api
+            import json
+            from pathlib import Path
+            from urllib.error import URLError
+            from urllib.request import urlopen
+
+            url = "http://127.0.0.1:8000/add?a=5&b=4"
+
+            try:
+                # load the url and obtain its respone
+                with urlopen(url, timeout=10) as response:
+                    # read its data
+                    output = response.read()
+                    # write the output to a json file
+                    Path('calculation-response.json').write_bytes(output)
+                    # load the result
+                    with open('calculation-response.json', encoding="utf-8") as file:
+                        loaded_result = json.load(file)
+
+                # print the loaded_result
+                print(loaded_result)
+                assert loaded_result.get("result")==9, loaded_result
+
+            except URLError as e:
+                print(f"Encounterd {e} during operation")
+            'PY'
+
+        - name: display container logs
+          if: always()
+          run: docker logs calculator-api || true
+
+        - name: remove test container
+          if: always()
+          run: docker rm -f calculator-api || true
+
+    publish:
+        name: Publish image to GHCR
+        needs: 
+            - build-test
+        if: >-
+            github.event_name == 'push' && github.ref == 'refs/heads/main'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - name: checkout repository
+              uses: actions/checkout@v7
+
+            - name: setup Docker buildx
+              uses: docker/setup-buildx-action@v4
+
+            - name: Login into Github container registry
+              uses: docker/login-action@v4
+              with:
+                registry: ${{env.REGISTRY}}
+                username: ${{github.actor}}
+                password: ${{secrets.GITHUB_TOKEN}}
+
+            - name: generate image tag and label
+              id: metadata
+              uses: docker/metadata-action@v6
+              with:
+                images: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}
+                tags: |
+                    type=sha,prefix=sha-
+                    type=raw,value=latest
+
+            - name: build and publish the container image
+              uses: docker/build-push-action@v7
+              with:
+                context: .
+                push: true
+                tags: ${{ steps.metadata.outputs.tags }}
+                labels: ${{ steps.metadata.outputs.labels }}
