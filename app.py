@@ -17,4 +17,4 @@ def health_status() -> dict[str, str]:
 def add_numbers(a: float, b: float) -> dict[str, float]:
     """add two numbers"""
     result = add(a, b)
-    return {"Ressult": result}
+    return {"result": result}
