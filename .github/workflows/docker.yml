@@ -98,7 +98,8 @@ jobs:
                     # write the output to a json file
                     Path('calculation-response.json').write_bytes(output)
                     # load the result
-                    loaded_result = json.load(output)
+                    with open('calculation-response.json', encoding="utf-8") as file:
+                        loaded_result = json.load(file)
 
                 # print the loaded_result
                 print(loaded_result)
