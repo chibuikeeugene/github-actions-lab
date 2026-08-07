@@ -76,7 +76,7 @@ jobs:
                 response = json.load(file)
 
             print(response)
-            assert response.status == 'ok', response
+            assert response.get("status") == "ok", response
             'PY'
 
         - name: test the calculator endpoint
@@ -102,7 +102,7 @@ jobs:
 
                 # print the loaded_result
                 print(loaded_result)
-                assert loaded_result.result==9, loaded_result
+                assert loaded_result.get("result")==9, loaded_result
 
             except URLError as e:
                 print(f"Encounterd {e} during operation")
