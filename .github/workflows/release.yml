@@ -2,8 +2,7 @@ name: Release Container
 
 on:
   release:
-    types:
-      - published
+    types: [published]
 
 permissions:
   contents: read
@@ -40,7 +39,9 @@ jobs:
             uses: docker/metadata-action@v6
             with: 
                 images: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}
-                tags: type=semver,pattern={{version}},value=${{github.event.release.tag_name}}
+                tags: | 
+                    type=semver,pattern={{version}},value=${{ github.event.release.tag_name }}
+                    type=sha,prefix=sha-
 
           - name: build and publish the image
             uses: docker/build-push-action@v7
@@ -80,6 +81,7 @@ jobs:
             
           - name: Pull the release image
             run: |
+                echo "Release tag: ${{ github.event.release.tag_name }}"
                 docker pull \
                 "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{github.event.release.tag_name}}"
 
