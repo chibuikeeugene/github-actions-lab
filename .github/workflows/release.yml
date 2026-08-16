@@ -161,3 +161,4 @@ jobs:
           - name: record the production promotion
             run:
                 echo "Release ${GITHUB_REF_NAME} approved for production"
+                echo "Welcome aboard !"
