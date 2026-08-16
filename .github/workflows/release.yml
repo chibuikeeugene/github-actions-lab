@@ -51,4 +51,113 @@ jobs:
                 labels: ${{steps.metadata.outputs.labels}}
 
 
+    staging:
+        name: Verifying release on staging
+        needs: 
+            - publish
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        environment: 
+            name: staging
+        permissions: 
+            contents: read
+            packages: read
 
+        steps:
+          - name: Login to GHCR
+            uses: docker/login-action@v4
+            with:
+                registry: ${{env.REGISTRY}}
+                username: ${{github.actor}}
+                password: ${{secrets.GITHUB_TOKEN}}
+    
+          - name: Determin the release version
+            id: version
+            shell: bash
+            run: |
+                VERSION="${GITHUB_REF_NAME#v}"
+                echo "versions=$VERSION" >> "$GITHUB_OUTPUT"
+            
+          - name: Pull the release image
+            run: |
+                docker pull \
+                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{steps.version.outputs.version}}"
+
+          - name: Start the release container
+            run: |
+                docker run \
+                -d \
+                --name release_test \
+                -p 8000:8000 \
+                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{steps.version.outputs.version}}"
+
+          - name: Smoke test the staging release
+            run: |
+                python - <<'PY'
+                import time
+                import subprocess
+                from pathlib import Path
+                from urllib.error import URLError
+                from urllib.request import urlopen
+
+
+                url = "http://127.0.0.1:8000/health"
+
+                for attempt in range(1, 16):
+                    try:
+                        with urlopen(url=url, timeout=10) as response:
+                            result = response.read()
+                            Path("health-response.json").write_bytes(result)
+                            print("Container is ready")
+                            break
+                    except (URLError, TimeoutError, OSError) as error:
+                        print(f"Waiting for container: attempt{attempt}/15")
+                        print(f"Reason: {error}")
+                        time.sleep(2)
+
+                else:
+                    print("Container did not become ready")
+                    subprocess.run(
+                        ["docker", "logs", "release_test"], check=False
+                    )
+                    raise SystemExit(1)
+                PY
+          - name: Show environment
+            run: echo "Environment= ${{vars.DEPLOYMENT_TIER}}"
+
+          - name: Cleanup
+            if: always()
+            run: docker rm --force release_test || true
+
+    production:
+        name: Promote release to production
+        needs: 
+            - staging
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        environment: 
+            name: production
+        
+        steps:
+          - name: verify production environment
+            env: 
+                DEPLOYMENT_TOKEN: ${{secrets.DEPLOYMENT_TOKEN}}
+                DEPLOYMENT_TIER: ${{ vars.DEPLOYMENT_TIER }}
+            run: |
+                python - <<'PY'
+                import os
+                import sys
+
+                deployment_token = os.getenv(DEPLOYMENT_TOKEN)
+
+                if not deployment_token:
+                    print("Production deployement secret token is unavailable")
+                    sys.exit(1)
+
+                print("Production environment secret is available")
+                print(f"Target environment:{DEPLOYMENT_TIER}")
+                'PY'
+
+          - name: record the production promotion
+            run:
+                echo "Release ${GITHUB_REF_NAME} approved for production"
