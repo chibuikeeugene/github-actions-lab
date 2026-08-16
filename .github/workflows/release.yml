@@ -71,7 +71,7 @@ jobs:
                 username: ${{github.actor}}
                 password: ${{secrets.GITHUB_TOKEN}}
     
-          - name: Determin the release version
+          - name: Determine the release version
             id: version
             shell: bash
             run: |
@@ -81,7 +81,7 @@ jobs:
           - name: Pull the release image
             run: |
                 docker pull \
-                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{steps.version.outputs.version}}"
+                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{github.event.release.tag_name}}"
 
           - name: Start the release container
             run: |
@@ -89,7 +89,7 @@ jobs:
                 -d \
                 --name release_test \
                 -p 8000:8000 \
-                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{steps.version.outputs.version}}"
+                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{github.event.release.tag_name}}"
 
           - name: Smoke test the staging release
             run: |
