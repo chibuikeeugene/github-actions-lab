@@ -2,8 +2,7 @@ name: Release Container
 
 on:
   release:
-    types:
-      - published
+    types: [published]
 
 permissions:
   contents: read
@@ -44,6 +43,7 @@ jobs:
                     type=semver,pattern={{version}},value=${{github.event.release.tag_name}} 
                     type=semver,pattern={{major}}.{{minor}},value=${{github.event.release.tag_name}}
                     type=semver,pattern={{major}},value=${{github.event.release.tag_name}}
+                    type=semver,pattern={{version}},value=${{ github.event.release.tag_name }}
                     type=sha,prefix=sha-
 
           - name: build and publish the image
@@ -75,7 +75,7 @@ jobs:
                 username: ${{github.actor}}
                 password: ${{secrets.GITHUB_TOKEN}}
     
-          - name: Determin the release version
+          - name: Determine the release version
             id: version
             shell: bash
             run: |
@@ -84,8 +84,9 @@ jobs:
             
           - name: Pull the release image
             run: |
+                echo "Release tag: ${{ github.event.release.tag_name }}"
                 docker pull \
-                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{steps.version.outputs.version}}"
+                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{github.event.release.tag_name}}"
 
           - name: Start the release container
             run: |
@@ -93,7 +94,7 @@ jobs:
                 -d \
                 --name release_test \
                 -p 8000:8000 \
-                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{steps.version.outputs.version}}"
+                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{github.event.release.tag_name}}"
 
           - name: Smoke test the staging release
             run: |
@@ -165,3 +166,4 @@ jobs:
           - name: record the production promotion
             run:
                 echo "Release ${GITHUB_REF_NAME} approved for production"
+                echo "Welcome aboard !"
