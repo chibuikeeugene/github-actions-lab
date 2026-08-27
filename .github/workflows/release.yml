@@ -43,9 +43,6 @@ jobs:
                     type=semver,pattern={{version}},value=${{github.event.release.tag_name}} 
                     type=semver,pattern={{major}}.{{minor}},value=${{github.event.release.tag_name}}
                     type=semver,pattern={{major}},value=${{github.event.release.tag_name}}
-                    type=semver,pattern={{version}},value=${{ github.event.release.tag_name }}
-                    type=semver,pattern={{major}}.{{minor}},value=${{github.event.release.tag_name}}
-                    type=semver,pattern={{major}},value=${{github.event.release.tag_name}}
                     type=sha,prefix=sha-
 
           - name: build and publish the image
