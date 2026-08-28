@@ -79,13 +79,13 @@ jobs:
             shell: bash
             run: |
                 VERSION="${GITHUB_REF_NAME#v}"
-                echo "versions=$VERSION" >> "$GITHUB_OUTPUT"
+                echo "version=$VERSION" >> "$GITHUB_OUTPUT"
             
           - name: Pull the release image
             run: |
                 echo "Release tag: ${{ github.event.release.tag_name }}"
                 docker pull \
-                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{github.event.release.tag_name}}"
+                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{steps.version.outputs.version}}"
 
           - name: Start the release container
             run: |
