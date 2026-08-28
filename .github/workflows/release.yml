@@ -93,7 +93,7 @@ jobs:
                 -d \
                 --name release_test \
                 -p 8000:8000 \
-                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{github.event.release.tag_name}}"
+                "${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{steps.version.outputs.version}}"
 
           - name: Smoke test the staging release
             run: |
