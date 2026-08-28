@@ -152,15 +152,16 @@ jobs:
                 import os
                 import sys
 
-                deployment_token = os.getenv(DEPLOYMENT_TOKEN)
+                deployment_token = os.getenv("DEPLOYMENT_TOKEN")
+                deployment_tier = os.getenv("DEPLOYMENT_TIER")
 
                 if not deployment_token:
                     print("Production deployement secret token is unavailable")
                     sys.exit(1)
 
                 print("Production environment secret is available")
-                print(f"Target environment:{DEPLOYMENT_TIER}")
-                'PY'
+                print(f"Target environment:{deployment_tier}")
+                PY
 
           - name: record the production promotion
             run:
