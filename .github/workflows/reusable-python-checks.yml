@@ -1,0 +1,84 @@
+name: Reusable python checks
+
+on:
+    workflow_call:
+      inputs:
+        python-version:
+          description: Python version
+          type: string
+          default: "3.13"
+          required: false
+
+        run-lint:
+          description: Run code quality checks with lint
+          type: boolean
+          default: true
+          required: false
+
+        run-test:
+          description: Run python test
+          type: boolean
+          default: true
+          required: false
+        
+        run-coverage:
+          description: Generate coverage report
+          type: boolean
+          default: false
+          required: false
+permissions: 
+  contents: read
+
+jobs:
+    checks:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v7
+
+            - name: Setup python
+              uses: actions/setup-python@v7
+              with:
+                cache: pip
+                python-version: ${{inputs.python-version}}
+                cache-dependency-path: |
+                  requirements.txt
+                  requirements-dev.txt
+
+            - name: Install dependencies
+              run: |
+                python -m pip install --upgrade pip
+                python -m pip install -r requirements-dev.txt
+            
+            - name: Run quality check
+              if: ${{inputs.run-lint}}
+              run: python -m ruff check .
+
+            - name: run formatting check
+              if: ${{inputs.run-lint}}
+              run: python -m ruff format --check .
+
+            - name: run tests
+              if: ${{inputs.run-test}}
+              run: python -m pytest -v
+            
+            - name: Generate test coverage report
+              if: ${{inputs.run-coverage}}
+              run: |
+                python -m pytest \
+                --cov=calculator \
+                --cov-report=term-missing \
+                --cov-report=html
+              
+            - name: Upload coverage report
+              if: ${{inputs.run-coverage}}
+              uses: actions/upload-artifact@v7
+              with:
+                name: coverage-${{inputs.python-version}}
+                path: htmlcov/
+                if-no-files-found: error
+
+                
+
+            
