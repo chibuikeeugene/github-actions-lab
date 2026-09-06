@@ -24,7 +24,7 @@ jobs:
       run-coverage: false 
 
   test-python-311:
-    name: run python tests with 3.11
+    name: run python tests version 3.11
     uses: ./.github/workflows/reusable-python-checks.yml
     with:
       python-version: "3.11"
@@ -33,7 +33,7 @@ jobs:
       run-coverage: false
     
   test-python-312:
-    name: run python tests with 3.12
+    name: run python tests version 3.12
     uses: ./.github/workflows/reusable-python-checks.yml
     with:
       python-version: "3.12"
@@ -42,7 +42,7 @@ jobs:
       run-coverage: false
 
   test-python-313:
-    name: run python tests with 3.13
+    name: run python tests version 3.13
     uses: ./.github/workflows/reusable-python-checks.yml
     with:
       python-version: "3.13"
