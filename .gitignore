@@ -4,3 +4,4 @@ gitactions-env/
 htmlcov/
 .ruff_cache/
 *.coverage
+.aws
