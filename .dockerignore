@@ -13,3 +13,4 @@ tests
 test_*.py
 requirements-dev.txt
 README.md
+.vscode
