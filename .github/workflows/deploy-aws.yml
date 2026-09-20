@@ -74,4 +74,64 @@ jobs:
                 service: ${{ env.ECS_SERVICE }}
                 cluster: ${{ env.ECS_CLUSTER }}
                 wait-for-service-stability: true
+            
+            - name: Verify deployed application # post deployment smoke test
+              env:
+                APPLICATION_URL: ${{ vars.APPLICATION_URL }}
+              run: |
+                python - <<'PY'
+                import os
+                import sys
+                import time
+                import urllib.error
+                import urllib.request
+
+                application_url = os.getenv("APPLICATION_URL")
+                health_url = f"{application_url}/health"
+
+                for attempt in range(1, 16):
+                    try:
+                        with urllib.request.urlopen(health_url, timeout=10) as response:
+                            if 200 <= response.status < 300:
+                                print("Application is healthy.")
+                                sys.exit(0)
+
+                    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError):
+                        pass
+
+                    print(f"Waiting for application... attempt {attempt}/15")
+                    time.sleep(10)
+
+                print("Post-deployment health check failed.")
+                sys.exit(1)
+                PY
+
+            - name: Verify calculator endpoint # test actual business behavoir with a single endpoint
+              env:
+                APPLICATION_URL: ${{ vars.APPLICATION_URL }}
+              run: |
+                python - <<'PY'
+                import json
+                import os
+                import sys
+                import urllib.request
+
+                application_url = os.getenv("APPLICATION_URL")
+                url = f"{application_url}/add?a=2&b=3"
+
+                try:
+                    with urllib.request.urlopen(url, timeout=10) as response:
+                        body = response.read().decode()
+                        print(body)
+
+                        data = json.loads(body)
+
+                        if data.get("result") != 5.0:
+                            print("Unexpected calculator result.")
+                            sys.exit(1)
+
+                except Exception as error:
+                    print(f"Calculator endpoint verification failed: {error}")
+                    sys.exit(1)
+                PY
 
